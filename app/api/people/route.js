@@ -1,8 +1,22 @@
- import { dataSet } from "@/data/peoples";
+import { dataSet } from "@/data/peoples";
 
-export async function GET ()
-{
-    return Response.json( dataSet );
+export async function GET(request) {
+    const searchParams = request.nextUrl.searchParams;
+    const query = searchParams.get('query');
+
+    if (query) {
+        const filteredPeople = dataSet?.filter(data => 
+            data.name.toLowerCase().includes(query.toLowerCase())
+        );
+
+        if (filteredPeople.length === 0) {
+            return Response.json({ message: "No data found" }, { status: 404 });
+        }
+
+        return Response.json(filteredPeople);
+    }
+
+    return Response.json(dataSet);
 }
 
 export async function POST (request)

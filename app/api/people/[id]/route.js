@@ -1,6 +1,7 @@
 import { dataSet } from "@/data/peoples";
 import { redirect } from "next/navigation";
 
+
 export async function GET (_request, context)
 {
     const peopleId = context.params.id;
