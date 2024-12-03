@@ -1,8 +1,15 @@
 import { dataSet } from "@/data/peoples";
+import { redirect } from "next/navigation";
 
 export async function GET (_request, context)
 {
     const peopleId = context.params.id;
+    const findPeople = dataSet?.find( data => data.id === parseInt( peopleId ) );
+
+    if ( !findPeople )
+    {
+        redirect( '/api/people' );
+    }
     const people = dataSet?.find( data => data.id === parseInt( peopleId ) );
 
     return Response.json( people );
