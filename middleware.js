@@ -1,22 +1,42 @@
-import { NextResponse } from 'next/server';
- 
-// This function can be marked `async` if using `await` inside
-export function middleware ( request )
-{
-    console.log( 'middleware' );
-    // console.log( request.url );
-    // if ( request.url.includes( "dashboard" ) )
-    // {
-    //     return NextResponse.redirect(new URL('/ ', request.url))
-    // }
-    // return NextResponse.next()
-    // return NextResponse.json( {
-    //     hello: "i am happy"
-    // })
-  return NextResponse.redirect(new URL('/', request.url))
+import { match } from "@formatjs/intl-localematcher";
+import Negotiator from "negotiator";
+import { NextResponse } from "next/server";
+
+let defaultLocale = "en";
+let locales = ["en", "bn"];
+
+function getLocale(request) {
+    const acceptedLanguage =
+        request.headers.get("accept-language") ?? undefined;
+    const headers = { "accept-language": acceptedLanguage };
+    const languages = new Negotiator( { headers } ).languages();
+    console.log(languages)
+
+    return match(languages, locales, defaultLocale); // en or bn
 }
- 
-// See "Matching Paths" below to learn more
+
+export function middleware(request) {
+    // get the pathname from request url
+    const pathname = request.nextUrl.pathname;
+
+    const pathNameIsMissingLocale = locales.every(
+        (locale) =>
+            !pathname.startsWith(`/${locale}`) &&
+            !pathname.startsWith(`/${locale}/`)
+    );
+
+    if (pathNameIsMissingLocale) {
+        // detect user's preference & redirect with a locale with a path eg: /en/about
+        const locale = getLocale(request);
+
+        return NextResponse.redirect(
+            new URL(`/${locale}/${pathname}`, request.url)
+        );
+    }
+
+    return NextResponse.next();
+}
+
 export const config = {
-  matcher: ['/dashboard', '/about']
-}
+    matcher: [ "/((?!_next).*)" ],
+};
